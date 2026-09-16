@@ -535,6 +535,7 @@ h1, h2, h3 { font-weight: 800; letter-spacing: -0.02em; color: var(--dark); }
 .form-status.show { display: block; }
 .form-status.ok { background: #e8f6ee; color: #1c7a41; }
 .form-status.err { background: #fde9e9; color: #b3261e; }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
 .map-embed {
   border-radius: var(--radius-lg);

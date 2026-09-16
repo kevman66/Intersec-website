@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     counters.forEach(el => cIO.observe(el));
   }
 
-  /* ---------- Contact form (Formspree) ---------- */
+  /* ---------- Contact form (own API at /api/contact) ---------- */
   const form = document.querySelector('#contact-form');
   if (form) {
     const statusBox = form.querySelector('.form-status');
@@ -79,18 +79,21 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.textContent = 'Sending…';
       submitBtn.disabled = true;
 
+      const payload = Object.fromEntries(new FormData(form).entries());
+
       try {
         const res = await fetch(form.action, {
           method: 'POST',
-          body: new FormData(form),
-          headers: { Accept: 'application/json' }
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
         });
-        if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok !== false) {
           statusBox.textContent = "Thank you — your message has been sent. We'll get back to you shortly.";
           statusBox.className = 'form-status show ok';
           form.reset();
         } else {
-          throw new Error('Form submission failed');
+          throw new Error(data.error || 'Form submission failed');
         }
       } catch (err) {
         statusBox.textContent = 'Something went wrong sending your message. Please call or WhatsApp us directly.';
