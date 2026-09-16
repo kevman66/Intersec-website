@@ -23,14 +23,14 @@ repo into wherever you want it to live — Nginx's `root` will point here
 too, so both the static site and this API live in the same place:
 
 ```bash
-cd /var/www   # or wherever you keep sites on this droplet
+cd /opt   # matches where security_deployer already lives
 git clone https://github.com/kevman66/Intersec-website.git intersec
 ```
 
 ## 3. Install dependencies and configure
 
 ```bash
-cd /var/www/intersec/server
+cd /opt/intersec/server
 npm install --production
 cp .env.example .env
 nano .env   # fill in BREVO_SMTP_USER and BREVO_SMTP_KEY
@@ -65,7 +65,7 @@ server {
     listen 80;
     server_name yourdomain.com;
 
-    root /var/www/intersec;   # wherever the static site files are
+    root /opt/intersec;   # wherever the static site files are
     index index.html;
 
     location /api/ {
@@ -133,7 +133,7 @@ Secrets and variables → Actions → New repository secret):
 | `DROPLET_USER` | The SSH user to log in as (e.g. `root` or a deploy user) |
 | `DROPLET_SSH_KEY` | A **private** SSH key GitHub Actions will authenticate with (see below) |
 | `DROPLET_PORT` | Only needed if SSH isn't on the default port 22 |
-| `DROPLET_DEPLOY_PATH` | Where you cloned the repo, e.g. `/var/www/intersec` |
+| `DROPLET_DEPLOY_PATH` | Where you cloned the repo, e.g. `/opt/intersec` |
 
 To create a dedicated key pair for GitHub Actions (don't reuse your personal
 SSH key):
