@@ -88,6 +88,10 @@ app.post('/api/contact', async (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => {
-  console.log(`Intersec contact API listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Intersec contact API listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;

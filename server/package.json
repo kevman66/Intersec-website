@@ -3,12 +3,19 @@
   "version": "1.0.0",
   "description": "Small API that emails Intersec Security Group's website contact form submissions",
   "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "express": "^4.19.2",
     "nodemailer": "^6.9.14",
     "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
   }
 }
