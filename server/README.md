@@ -2,17 +2,22 @@
 
 A small Express server with one job: receive the contact form on the website
 and email it to info@intersecug.com (which forwards to Gmail via Cloudflare
-Email Routing) via Brevo SMTP. Runs alongside the static site on your
+Email Routing) via Brevo's HTTPS API. Runs alongside the static site on your
 existing droplet.
 
-## 1. Get your Brevo SMTP credentials
+We use Brevo's API rather than their SMTP relay deliberately — some hosts
+(including, in our case, DigitalOcean) block outbound SMTP ports by default
+for anti-spam reasons, which caused connection timeouts. The API runs over
+plain HTTPS (port 443), which is never blocked, so this sidesteps that
+entirely.
 
-In Brevo, go to **Settings → SMTP & API → SMTP tab**. You'll see:
-- An SMTP login (your Brevo account email) → this is `BREVO_SMTP_USER`
-- A button to generate/reveal an SMTP key → this is `BREVO_SMTP_KEY` (not
-  your Brevo account password — a separate generated key, revocable anytime)
+## 1. Get your Brevo API key
 
-Also confirm `info@intersecug.com` (or the whole `intersecug.com` domain) is
+In Brevo, go to **Settings → SMTP & API → API Keys tab** (not the SMTP tab —
+that's a different, unrelated credential). Generate a new key; this is
+`BREVO_API_KEY`. Revocable anytime from that same page.
+
+Also confirm `forms@intersecug.com` (or the whole `intersecug.com` domain) is
 verified as a sender in Brevo — **Settings → Senders, Domains & Dedicated
 IPs**. Brevo will reject sends from an unverified "from" address.
 
@@ -33,7 +38,7 @@ git clone https://github.com/kevman66/Intersec-website.git intersec
 cd /opt/intersec/server
 npm install --production
 cp .env.example .env
-nano .env   # fill in BREVO_SMTP_USER and BREVO_SMTP_KEY
+nano .env   # fill in BREVO_API_KEY
 ```
 
 ## 4. Run it with PM2 (keeps it alive, restarts on crash/reboot)

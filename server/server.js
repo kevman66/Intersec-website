@@ -1,27 +1,18 @@
 require('dotenv').config();
 const express = require('express');
-const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
-const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER;
-const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'forms@intersecug.com';
 const TO_EMAIL = process.env.TO_EMAIL || 'info@intersecug.com';
 
-if (!BREVO_SMTP_USER || !BREVO_SMTP_KEY) {
-  console.error('Missing BREVO_SMTP_USER or BREVO_SMTP_KEY environment variables.');
+if (!BREVO_API_KEY) {
+  console.error('Missing BREVO_API_KEY environment variable.');
   process.exit(1);
 }
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false, // STARTTLS on port 587
-  auth: { user: BREVO_SMTP_USER, pass: BREVO_SMTP_KEY }
-});
 
 const SERVICE_OPTIONS = new Set([
   'Armed & Unarmed Guarding',
@@ -42,6 +33,30 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+async function sendViaBrevo({ toEmail, replyToEmail, subject, text, html }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      'api-key': BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: { name: 'Intersec Website', email: FROM_EMAIL },
+      to: [{ email: toEmail }],
+      replyTo: { email: replyToEmail },
+      subject,
+      textContent: text,
+      htmlContent: html
+    })
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => '');
+    throw new Error(`Brevo API responded ${res.status}: ${errorBody}`);
+  }
+}
+
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, phone, email, service, message, _hp } = req.body || {};
@@ -58,10 +73,9 @@ app.post('/api/contact', async (req, res) => {
 
     const safeService = SERVICE_OPTIONS.has(service) ? service : 'Other / Not Sure';
 
-    await transporter.sendMail({
-      from: `"Intersec Website" <${FROM_EMAIL}>`,
-      to: TO_EMAIL,
-      replyTo: email,
+    await sendViaBrevo({
+      toEmail: TO_EMAIL,
+      replyToEmail: email,
       subject: `New enquiry from intersecug.com — ${name}`,
       text:
         `New contact form submission\n\n` +
