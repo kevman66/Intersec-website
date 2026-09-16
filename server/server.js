@@ -6,18 +6,21 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
-const TO_EMAIL = process.env.TO_EMAIL || GMAIL_USER;
+const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER;
+const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'forms@intersecug.com';
+const TO_EMAIL = process.env.TO_EMAIL || 'info@intersecug.com';
 
-if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-  console.error('Missing GMAIL_USER or GMAIL_APP_PASSWORD environment variables.');
+if (!BREVO_SMTP_USER || !BREVO_SMTP_KEY) {
+  console.error('Missing BREVO_SMTP_USER or BREVO_SMTP_KEY environment variables.');
   process.exit(1);
 }
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD }
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false, // STARTTLS on port 587
+  auth: { user: BREVO_SMTP_USER, pass: BREVO_SMTP_KEY }
 });
 
 const SERVICE_OPTIONS = new Set([
@@ -56,7 +59,7 @@ app.post('/api/contact', async (req, res) => {
     const safeService = SERVICE_OPTIONS.has(service) ? service : 'Other / Not Sure';
 
     await transporter.sendMail({
-      from: `"Intersec Website" <${GMAIL_USER}>`,
+      from: `"Intersec Website" <${FROM_EMAIL}>`,
       to: TO_EMAIL,
       replyTo: email,
       subject: `New enquiry from intersecug.com — ${name}`,

@@ -1,17 +1,20 @@
 # Intersec contact form API
 
 A small Express server with one job: receive the contact form on the website
-and email it to intersecug@gmail.com via Gmail SMTP. Runs alongside the
-static site on your existing droplet.
+and email it to info@intersecug.com (which forwards to Gmail via Cloudflare
+Email Routing) via Brevo SMTP. Runs alongside the static site on your
+existing droplet.
 
-## 1. Get a Gmail App Password
+## 1. Get your Brevo SMTP credentials
 
-The `intersecug@gmail.com` Google account needs 2-Step Verification turned on
-(Google Account → Security → 2-Step Verification), then generate an app
-password at https://myaccount.google.com/apppasswords — pick "Mail" as the
-app. Copy the 16-character password it gives you; you'll paste it into `.env`
-below. This is separate from the normal Gmail password and can be revoked
-any time without affecting login.
+In Brevo, go to **Settings → SMTP & API → SMTP tab**. You'll see:
+- An SMTP login (your Brevo account email) → this is `BREVO_SMTP_USER`
+- A button to generate/reveal an SMTP key → this is `BREVO_SMTP_KEY` (not
+  your Brevo account password — a separate generated key, revocable anytime)
+
+Also confirm `info@intersecug.com` (or the whole `intersecug.com` domain) is
+verified as a sender in Brevo — **Settings → Senders, Domains & Dedicated
+IPs**. Brevo will reject sends from an unverified "from" address.
 
 ## 2. Get the code onto the droplet
 
@@ -32,7 +35,7 @@ SSH into the droplet, then:
 cd /var/www/intersec/server
 npm install --production
 cp .env.example .env
-nano .env   # fill in GMAIL_APP_PASSWORD (and GMAIL_USER/TO_EMAIL if different)
+nano .env   # fill in BREVO_SMTP_USER and BREVO_SMTP_KEY
 ```
 
 ## 4. Run it with PM2 (keeps it alive, restarts on crash/reboot)
@@ -90,8 +93,8 @@ sudo systemctl reload nginx
 ## 6. Test it for real
 
 Open the live site's Contact page and submit the form. A message should
-land in intersecug@gmail.com within a few seconds. You can also check
-directly from the droplet:
+land in info@intersecug.com (forwarded to Gmail) within a few seconds. You
+can also check directly from the droplet:
 
 ```bash
 curl -X POST http://localhost:3001/api/contact \
